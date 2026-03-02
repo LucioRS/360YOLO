@@ -50,7 +50,7 @@ Author: [**Lucio R. Salinas*](https://www.linkedin.com/in/lucio-r-salinas/)
 
 ## Running the app
 
-Whithin the active virtual environment, simply run `main.py`.
+Whithin the active virtual environment, simply run `main.py` in `app` folder.
 ```
-python main.py
+python app/main.py
 ```

@@ -6,11 +6,11 @@ from typing import Optional, Dict
 import cv2
 import numpy as np
 
-from app.camera import FFmpegDShowCamera
-from app.config import AppConfig
-from app.detector import YOLODetectorCPU, Det
-from app.projector import EquirectProjector
-from app.shared_state import SharedState, FramePacket, InferenceStats
+from camera import FFmpegDShowCamera
+from config import AppConfig
+from detector import YOLODetectorCPU, Det
+from projector import EquirectProjector
+from shared_state import SharedState, FramePacket, InferenceStats
 
 
 def draw_dets(img: np.ndarray, dets: list[Det]) -> np.ndarray:

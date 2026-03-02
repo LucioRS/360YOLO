@@ -6,7 +6,7 @@ import time
 import cv2
 import numpy as np
 
-from app.config import ViewSpec
+from config import ViewSpec
 
 
 @dataclass

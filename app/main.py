@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from app.config import AppConfig
-from app.shared_state import SharedState
-from app.projector import EquirectProjector
-from app.detector import YOLODetectorCPU
-from app.workers import CaptureWorker, InferenceWorker
-from app.gui import run_gui
+from config import AppConfig
+from shared_state import SharedState
+from projector import EquirectProjector
+from detector import YOLODetectorCPU
+from workers import CaptureWorker, InferenceWorker
+from gui import run_gui
 
 
 def main() -> int:

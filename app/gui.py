@@ -17,8 +17,8 @@ from OpenGL.GL import (
     GL_RGB, GL_BGR, GL_UNSIGNED_BYTE,
 )
 
-from .shared_state import SharedState
-from .ptz_shader import PTZRenderer, PTZState
+from shared_state import SharedState
+from ptz_shader import PTZRenderer, PTZState
 
 
 # =========================
