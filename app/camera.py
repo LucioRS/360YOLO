@@ -76,3 +76,74 @@ class FFmpegDShowCamera:
             except Exception:
                 pass
             self._proc = None
+
+class FFmpegVideoFileSource:
+    """
+    Reads frames from a video file via FFmpeg and outputs BGR24 frames.
+    Keeps the same interface as FFmpegDShowCamera.
+    """
+    def __init__(self, path: str, w: int, h: int, fps: int, loop: bool = True, realtime: bool = True):
+        self.path = path
+        self.w = int(w)
+        self.h = int(h)
+        self.fps = int(fps)
+        self.loop = loop
+        self.realtime = realtime
+        self._proc: Optional[subprocess.Popen] = None
+
+        self._frames = [
+            np.empty((self.h, self.w, 3), dtype=np.uint8),
+            np.empty((self.h, self.w, 3), dtype=np.uint8),
+        ]
+        self._mvs = [memoryview(f).cast("B") for f in self._frames]
+        self._idx = 0
+
+    def open(self) -> None:
+        cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error"]
+
+        if self.realtime:
+            cmd += ["-re"]
+
+        if self.loop:
+            cmd += ["-stream_loop", "-1"]
+
+        cmd += [
+            "-i", self.path,
+            "-vf", f"scale={self.w}:{self.h}",
+            "-r", str(self.fps),
+            "-pix_fmt", "bgr24",
+            "-f", "rawvideo",
+            "pipe:1",
+        ]
+
+        self._proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            bufsize=0,
+        )
+
+    def read_frame(self) -> Optional[np.ndarray]:
+        if self._proc is None or self._proc.stdout is None:
+            return None
+
+        mv = self._mvs[self._idx]
+        total = len(mv)
+        got = 0
+        while got < total:
+            n = self._proc.stdout.readinto(mv[got:])
+            if n is None or n == 0:
+                return None
+            got += n
+
+        frame = self._frames[self._idx]
+        self._idx ^= 1
+        return frame
+
+    def close(self) -> None:
+        if self._proc is not None:
+            try:
+                self._proc.kill()
+            except Exception:
+                pass
+            self._proc = None

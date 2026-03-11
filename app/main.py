@@ -1,4 +1,5 @@
 from __future__ import annotations
+import argparse
 
 from config import AppConfig
 from shared_state import SharedState
@@ -8,8 +9,27 @@ from workers import CaptureWorker, InferenceWorker
 from gui import run_gui
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "video_path",
+        nargs="?",
+        default=None,
+        help="Path to an equirectangular MP4 file, eg: ./videos/my_360_video.mp4",
+    )
+    return parser.parse_args()
+
 def main() -> int:
+    args = parse_args()
     cfg = AppConfig()
+
+    if args.video_path:
+        cfg.camera.source_type = "video_file"
+        cfg.camera.video_path = args.video_path
+        cfg.camera.width = 3840
+        cfg.camera.height = 1920
+        cfg.camera.fps = 30
+
     state = SharedState()
 
     # Precompute remap grids once (startup)
@@ -26,7 +46,6 @@ def main() -> int:
     state.set_conf(cfg.inference.conf)
     state.set_imgsz(cfg.inference.imgsz)
     state.set_paused(False)
-
 
     cap_w = CaptureWorker(cfg, state)
     inf_w = InferenceWorker(cfg, state, projector, detector)

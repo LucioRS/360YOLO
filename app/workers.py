@@ -6,7 +6,7 @@ from typing import Optional, Dict
 import cv2
 import numpy as np
 
-from camera import FFmpegDShowCamera
+from camera import FFmpegDShowCamera, FFmpegVideoFileSource
 from config import AppConfig
 from detector import YOLODetectorCPU, Det
 from projector import EquirectProjector
@@ -112,7 +112,25 @@ class CaptureWorker(StoppableThread):
         c = cfg.camera
         self.cfg = cfg
         self.state = state
-        self.cam = FFmpegDShowCamera(c.dshow_name, c.width, c.height, c.fps, c.in_pixfmt)
+        
+        if c.source_type == "video_file":
+            self.cam = FFmpegVideoFileSource(
+                path=c.video_path,
+                w=c.width,
+                h=c.height,
+                fps=c.fps,
+                loop=c.loop_video,
+                realtime=c.realtime,
+            )
+        else:
+            self.cam = FFmpegDShowCamera(
+                c.dshow_name,
+                c.width,
+                c.height,
+                c.fps,
+                c.in_pixfmt,
+            )
+        
         self._last_preview_ts = 0.0
 
     def run(self) -> None:
@@ -120,10 +138,13 @@ class CaptureWorker(StoppableThread):
         frame_id = 0
         try:
             self.cam.open()
-            self.state.set_status(f"Camera: {c.dshow_name} ({c.width}x{c.height}@{c.fps} in={c.in_pixfmt})")
+            if c.source_type == "video_file":
+                self.state.set_status(f"Video file: {c.video_path} ({c.width}x{c.height}@{c.fps})")
+            else:
+                self.state.set_status(f"Camera: {c.dshow_name} ({c.width}x{c.height}@{c.fps} in={c.in_pixfmt})")            
             self.state.clear_error()
         except Exception as e:
-            self.state.set_error(f"Camera open failed: {e}")
+            self.state.set_error(f"Input open failed: {e}")
             return
 
         last = time.perf_counter()
