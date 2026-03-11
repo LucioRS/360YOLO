@@ -37,18 +37,18 @@ def make_views(n: int) -> List[ViewSpec]:
         #     ViewSpec("down_front", 0.0, -30.0, 90.0, 640, 640),
         # ]
         views = [
-            # ViewSpec("front", 0.0, 0.0, 60.0, 320, 320),
-            # ViewSpec("right_front", 60.0, 0.0, 60.0, 320, 320),
-            # ViewSpec("right_back", 120.0, 0.0, 60.0, 320, 320),
-            # ViewSpec("back", 180.0, 0.0, 60.0, 320, 320),
-            # ViewSpec("left_back", 240.0, 0.0, 60.0, 320, 320),
-            # ViewSpec("left_front", 300.0, 0.0, 60.0, 320, 320)
-            ViewSpec("front", 0.0, 0.0, 60.0, 640, 640),
-            ViewSpec("right_front", 60.0, 0.0, 60.0, 640, 640),
-            ViewSpec("right_back", 120.0, 0.0, 60.0, 640, 640),
-            ViewSpec("back", 180.0, 0.0, 60.0, 640, 640),
-            ViewSpec("left_back", 240.0, 0.0, 60.0, 640, 640),
-            ViewSpec("left_front", 300.0, 0.0, 60.0, 640, 640)
+            ViewSpec("front", 0.0, 0.0, 60.0, 320, 320),
+            ViewSpec("right_front", 60.0, 0.0, 60.0, 320, 320),
+            ViewSpec("right_back", 120.0, 0.0, 60.0, 320, 320),
+            ViewSpec("back", 180.0, 0.0, 60.0, 320, 320),
+            ViewSpec("left_back", 240.0, 0.0, 60.0, 320, 320),
+            ViewSpec("left_front", 300.0, 0.0, 60.0, 320, 320)
+            # ViewSpec("front", 0.0, 0.0, 60.0, 640, 640),
+            # ViewSpec("right_front", 60.0, 0.0, 60.0, 640, 640),
+            # ViewSpec("right_back", 120.0, 0.0, 60.0, 640, 640),
+            # ViewSpec("back", 180.0, 0.0, 60.0, 640, 640),
+            # ViewSpec("left_back", 240.0, 0.0, 60.0, 640, 640),
+            # ViewSpec("left_front", 300.0, 0.0, 60.0, 640, 640)
         ]
         return views
     # n == 8
@@ -69,12 +69,12 @@ class CameraConfig:
     in_pixfmt: str = "nv12"  # "nv12" or "yuyv422" (from ffmpeg -list_options)
     
     # Video file
-    video_path: str = "./videos/input_3840x1920.mp4"
+    video_path: str = "./videos/input_1920x960.mp4"
     loop_video: bool = True
     realtime: bool = True     # usar -re para reproducir a tiempo real
 
-    width: int = 3840
-    height: int = 1920
+    width: int = 1920
+    height: int = 960
     fps: int = 30
 
     # Tip: GUI preview downscale (don’t upload 3840x1920 every frame)
@@ -85,12 +85,12 @@ class CameraConfig:
 @dataclass
 class InferenceConfig:
     model_path: str = "./models/yolo26n.pt"
-    imgsz: int = 640
+    imgsz: int = 320
     conf: float = 0.5
     device: str = "cpu"
 
     # GUI preview for views
-    view_preview_width: int = 640
+    view_preview_width: int = 320
     view_preview_max_fps: float = 15.0
 
 
