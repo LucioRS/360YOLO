@@ -15,20 +15,41 @@ def parse_args():
         "video_path",
         nargs="?",
         default=None,
-        help="Path to an equirectangular MP4 file, eg: ./videos/my_360_video.mp4",
+        help="Path to an equirectangular MP4 file, eg: ./videos/my_360_video.mp4"
     )
+    parser.add_argument(
+        "--ros-topic",
+        dest="ros_topic",
+        default=None,
+        help="ROS raw image topic, e.g. /camera/image_decoded"
+    )
+
+    # Useful for both video file and ROS mode
+    parser.add_argument("--width", type=int, default=None)
+    parser.add_argument("--height", type=int, default=None)
+    parser.add_argument("--fps", type=int, default=None)
+
     return parser.parse_args()
 
 def main() -> int:
     args = parse_args()
     cfg = AppConfig()
 
+    if args.ros_topic:
+        cfg.camera.source_type = "ros_image"
+        cfg.camera.ros_topic = args.ros_topic
+
     if args.video_path:
         cfg.camera.source_type = "video_file"
         cfg.camera.video_path = args.video_path
-        cfg.camera.width = 3840
-        cfg.camera.height = 1920
-        cfg.camera.fps = 30
+
+    # Optional overrides for non-default panorama size / rate
+    if args.width is not None:
+        cfg.camera.width = args.width
+    if args.height is not None:
+        cfg.camera.height = args.height
+    if args.fps is not None:
+        cfg.camera.fps = args.fps
 
     state = SharedState()
 

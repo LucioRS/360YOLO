@@ -88,13 +88,13 @@ def _draw_label(pano_small: np.ndarray, x: int, y: int, text: str) -> None:
 class StoppableThread(threading.Thread):
     def __init__(self, name: str):
         super().__init__(name=name, daemon=True)
-        self._stop = threading.Event()
+        self._stop_evt = threading.Event()
 
     def stop(self) -> None:
-        self._stop.set()
+        self._stop_evt.set()
 
     def stopped(self) -> bool:
-        return self._stop.is_set()
+        return self._stop_evt.is_set()
 
 
 class CaptureWorker(StoppableThread):
@@ -113,7 +113,16 @@ class CaptureWorker(StoppableThread):
         self.cfg = cfg
         self.state = state
         
-        if c.source_type == "video_file":
+        if c.source_type == "ros_image":
+            from ros_source import ROSImageSource
+
+            self.cam = ROSImageSource(
+                topic=c.ros_topic,
+                node_name=c.ros_node_name,
+                queue_size=c.ros_queue_size,
+                wait_timeout_sec=c.ros_wait_timeout_sec,
+            )
+        elif c.source_type == "video_file":
             self.cam = FFmpegVideoFileSource(
                 path=c.video_path,
                 w=c.width,
@@ -138,7 +147,9 @@ class CaptureWorker(StoppableThread):
         frame_id = 0
         try:
             self.cam.open()
-            if c.source_type == "video_file":
+            if c.source_type == "ros_image":
+                self.state.set_status(f"ROS image: {c.ros_topic}")
+            elif c.source_type == "video_file":
                 self.state.set_status(f"Video file: {c.video_path} ({c.width}x{c.height}@{c.fps})")
             else:
                 self.state.set_status(f"Camera: {c.dshow_name} ({c.width}x{c.height}@{c.fps} in={c.in_pixfmt})")            
@@ -155,7 +166,9 @@ class CaptureWorker(StoppableThread):
                 now = time.perf_counter()
 
                 if pano is None:
-                    self.state.set_error("Camera read failed (ffmpeg short read).")
+                    err_getter = getattr(self.cam, "get_last_error", None)
+                    src_err = err_getter() if callable(err_getter) else None
+                    self.state.set_error(src_err or f"{c.source_type} read failed.")
                     time.sleep(0.02)
                     continue
 

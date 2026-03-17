@@ -62,7 +62,7 @@ def make_views(n: int) -> List[ViewSpec]:
 
 @dataclass
 class CameraConfig:
-    source_type: Literal["dshow", "video_file"] = "dshow"
+    source_type: Literal["dshow", "video_file", "ros_image"] = "dshow"
 
     # DirectShow camera
     dshow_name: str = "RICOH THETA UVC"
@@ -71,8 +71,15 @@ class CameraConfig:
     # Video file
     video_path: str = "./videos/input_1920x960.mp4"
     loop_video: bool = True
-    realtime: bool = True     # usar -re para reproducir a tiempo real
+    realtime: bool = True     # use -re to play in real time
 
+    # ROS raw-image input (fed by image_transport republish)
+    ros_topic: str = "/camera/image_decoded"
+    ros_node_name: str = "yolo360_ros_sub"
+    ros_queue_size: int = 1
+    ros_wait_timeout_sec: float = 1.0
+
+    # Panorama geometry expected by the rest of the app
     width: int = 1920
     height: int = 960
     fps: int = 30

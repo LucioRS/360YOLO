@@ -1,4 +1,5 @@
 .venv/
+.venv_ros/
 __pycache__/
 *.pyc
 *.pyo

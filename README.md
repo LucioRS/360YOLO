@@ -3,10 +3,11 @@ ___
 
 A small desktop GUI application that displays a 360° equirectangular video feed and runs real-time YOLO object detection.
 
-The application can work with either:
+The application can work with:
 
 - a **live 360 camera feed**
 - a **360 equirectangular MP4 video file** passed at launch time
+- a **ROS 2 image topic** generated from a live 360 stream
 
 It runs using Python 3.10 and higher and depends on:
 
@@ -25,6 +26,7 @@ Author: [**Lucio R. Salinas**](https://www.linkedin.com/in/lucio-r-salinas/)
 - Multiple projected views generated from the panorama
 - Support for **live camera input**
 - Support for **MP4 video file input**
+- Support for **ROS 2 image input**
 - Simple command-line launch for switching input source
 
 ## First-time setup
@@ -105,7 +107,7 @@ python app/main.py
 
 ### 1) Live camera input
 
-If launched without arguments, the application uses the camera source configured in the app settings:
+If launched without arguments, the application uses the camera source configured in the app settings (`CameraConfig`):
 
 ```bash
 python app/main.py
@@ -118,23 +120,90 @@ This mode is intended for live 360 camera capture, such as a RICOH THETA camera.
 You can also launch the application using a 360 equirectangular MP4 file as input by passing the file path as a positional argument:
 
 ```bash
-python app/main.py "./videos/my_360_video.mp4"
+python app/main.py "./videos/my_360_video.mp4" --width 1920 --height 960
 ```
 
 When a video file path is provided, the application switches from live camera input to file-based input.
 
+### 3) ROS 2 input
+
+The application can also consume a ROS 2 live stream after it has been republished as a raw `sensor_msgs/msg/Image` topic.
+
+This mode is intended for workflows where a camera node publishes compressed `ffmpeg_image_transport_msgs/msg/FFMPEGPacket` messages and the stream is decoded through `image_transport`.
+
+#### ROS 2 prerequisites
+
+For ROS 2 mode, make sure:
+
+- ROS 2 is installed and sourced in the terminal used to launch the app
+- `image_transport` is available
+- `ffmpeg_image_transport` is installed
+- a republisher node is running to convert the `ffmpeg` transport stream into a raw image topic
+
+#### Republish the ffmpeg transport to a raw image topic
+
+If your camera node publishes to:
+
+```text
+/camera/image_h264/ffmpeg
+```
+
+run:
+
+```bash
+ros2 run image_transport republish --ros-args -p in_transport:=ffmpeg -p out_transport:=raw --remap in/ffmpeg:=/camera/image_h264/ffmpeg --remap out:=/camera/image_decoded
+```
+
+This creates a decoded raw image topic:
+
+```text
+/camera/image_decoded
+```
+
+#### Launch 360YOLO in ROS 2 mode
+
+Then launch the app with the decoded ROS 2 image topic:
+
+```bash
+python app/main.py --ros-topic /camera/image_decoded --width 1920 --height 960 --fps 30
+```
+
+You can adjust `--width`, `--height`, and `--fps` to match the incoming panorama stream.
+
 ## Expected video format
 
-For best results, the input video file should be:
+For best results, the input panorama should be:
 
-- an **equirectangular 360° video**
+- an **equirectangular 360° image or video**
 - resolution **3840x1920** or **1920x960**
 - preferably **30 FPS**
 
-Using a video with a different resolution may require adjusting the configured panorama width and height in the application.
+Using a different resolution may require adjusting the panorama width and height passed to the application.
 
 ## Notes
 
 - FFmpeg must be correctly installed and accessible from the command line.
-- Live camera mode and video file mode share the same GUI and detection pipeline.
-- When using a video file, the panorama is processed in the same way as a live 360 feed.
+- Live camera mode, video file mode, and ROS 2 mode share the same GUI and detection pipeline.
+- When using a video file or ROS 2 input, the panorama is processed in the same way as a live 360 feed.
+- In ROS 2 mode, the app currently subscribes to a decoded raw image topic, not directly to the `ffmpeg` transport topic.
+- The ROS 2 mode has been tested with decoded images in `bgr8` encoding.
+
+## Examples
+
+Launch with live camera input:
+
+```bash
+python app/main.py --width 1920 --height 960 --fps 30
+```
+
+Launch with MP4 video input:
+
+```bash
+python app/main.py "./videos/my_360_video.mp4" --width 1920 --height 960 --fps 30
+```
+
+Launch with ROS 2 input:
+
+```bash
+python app/main.py --ros-topic /camera/image_decoded --width 1920 --height 960 --fps 30
+```
