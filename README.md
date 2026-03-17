@@ -193,13 +193,13 @@ Using a different resolution may require adjusting the panorama width and height
 Launch with live camera input:
 
 ```bash
-python app/main.py --width 1920 --height 960 --fps 30
+python app/main.py
 ```
 
 Launch with MP4 video input:
 
 ```bash
-python app/main.py "./videos/my_360_video.mp4" --width 1920 --height 960 --fps 30
+python app/main.py "./videos/my_360_video.mp4" --width 1920 --height 960
 ```
 
 Launch with ROS 2 input:
