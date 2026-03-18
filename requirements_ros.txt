@@ -1,0 +1,4 @@
+imgui-bundle
+PyOpenGL
+ultralytics
+numpy<2
