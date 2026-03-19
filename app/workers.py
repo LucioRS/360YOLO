@@ -107,11 +107,12 @@ class CaptureWorker(StoppableThread):
       The pano preview is ALWAYS overlaid with the latest detections (stored in SharedState),
       so boxes/polys do NOT flicker even if inference preview is slower than pano preview.
     """
-    def __init__(self, cfg: AppConfig, state: SharedState):
+    def __init__(self, cfg: AppConfig, state: SharedState, recorder=None):
         super().__init__("CaptureWorker")
         c = cfg.camera
         self.cfg = cfg
         self.state = state
+        self.recorder = recorder
         
         if c.source_type == "ros_image":
             from ros_source import ROSImageSource
@@ -206,6 +207,10 @@ class CaptureWorker(StoppableThread):
                             _draw_label(pano_small, cx, cy, label)
 
                     self.state.put_pano_preview(frame_id, pano_small, now)
+
+                    if self.recorder is not None and self.recorder.is_active():
+                        self.recorder.enqueue_frame(pano_small, time.time_ns())
+
                     self._last_preview_ts = now
 
                 frame_id += 1

@@ -60,6 +60,11 @@ class SharedState:
         self._pano_overlays = []          # list of dicts: {"u": np.ndarray, "v": np.ndarray, "label": str}
         self._pano_overlays_frame_id = -1
 
+        self._recording = False
+        self._recording_uri: Optional[str] = None
+        self._recording_frames = 0
+        self._recording_error: Optional[str] = None
+
         self._start_ts = time.perf_counter()
 
     # ----- runtime controls -----
@@ -156,6 +161,31 @@ class SharedState:
         with self._lock:
             return self._pano_overlays_frame_id, self._pano_overlays
 
+    def set_recording_status(
+        self,
+        *,
+        active: bool,
+        uri: Optional[str] = None,
+        frames: Optional[int] = None,
+        error: Optional[str] = None,
+    ) -> None:
+        with self._lock:
+            self._recording = active
+            if uri is not None:
+                self._recording_uri = uri
+            if frames is not None:
+                self._recording_frames = frames
+            self._recording_error = error
+
+    def get_recording_status(self) -> dict:
+        with self._lock:
+            return {
+                "active": self._recording,
+                "uri": self._recording_uri,
+                "frames": self._recording_frames,
+                "error": self._recording_error,
+            }
+    
     def ui_snapshot(self) -> dict:
         with self._lock:
             uptime = time.perf_counter() - self._start_ts

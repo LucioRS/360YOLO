@@ -6,6 +6,7 @@ from shared_state import SharedState
 from projector import EquirectProjector
 from detector import YOLODetectorCPU
 from workers import CaptureWorker, InferenceWorker
+from bag_video_recorder import PanoBagRecorder
 from gui import run_gui
 
 
@@ -68,15 +69,18 @@ def main() -> int:
     state.set_imgsz(cfg.inference.imgsz)
     state.set_paused(False)
 
-    cap_w = CaptureWorker(cfg, state)
+    recorder = PanoBagRecorder()
+
+    cap_w = CaptureWorker(cfg, state, recorder=recorder)
     inf_w = InferenceWorker(cfg, state, projector, detector)
 
     cap_w.start()
     inf_w.start()
 
     try:
-        run_gui(state)
+        run_gui(state, recorder)
     finally:
+        recorder.stop()
         cap_w.stop()
         inf_w.stop()
         cap_w.join(timeout=2.0)

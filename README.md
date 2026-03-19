@@ -9,6 +9,8 @@ The application can work with:
 - a **360 equirectangular MP4 video file** passed at launch time
 - a **ROS 2 image topic** generated from a live 360 stream
 
+It also supports recording the **annotated panorama preview** to a **ROS 2 bag** while the application is running.
+
 It runs using Python 3.10 and higher and depends on:
 
 - [imgui-bundle](https://pthom.github.io/imgui_bundle/)
@@ -27,6 +29,7 @@ Author: [**Lucio R. Salinas**](https://www.linkedin.com/in/lucio-r-salinas/)
 - Support for **live camera input**
 - Support for **MP4 video file input**
 - Support for **ROS 2 image input**
+- Support for recording the **annotated panorama preview** to a **ROS 2 bag**
 - Simple command-line launch for switching input source
 
 ## First-time setup
@@ -91,9 +94,19 @@ Author: [**Lucio R. Salinas**](https://www.linkedin.com/in/lucio-r-salinas/)
 
 6. Install dependencies
 
+   Standard desktop mode:
+
    ```bash
    pip install -r requirements.txt
    ```
+
+   ROS 2 mode, or if you want the ROS bag recording capability, use an environment with access to ROS 2 and install:
+
+   ```bash
+   pip install -r requirements_ros.txt
+   ```
+
+   The `requirements_ros.txt` file is intended for environments where ROS 2 Python packages are already available, such as a ROS-sourced shell or an environment layered on top of a ROS installation.
 
 ## Running the app
 
@@ -170,6 +183,51 @@ python app/main.py --ros-topic /camera/image_decoded --width 1920 --height 960 -
 
 You can adjust `--width`, `--height`, and `--fps` to match the incoming panorama stream.
 
+## Recording the panorama to a ROS 2 bag
+
+The application can record the **annotated panorama preview** shown in the Panorama panel to a **ROS 2 bag**.
+
+This recording contains the panorama image with its current annotations and is saved as a ROS image topic inside the bag.
+
+### Recording behavior
+
+- Recording is started and stopped from the GUI
+- The recorded topic contains the **annotated panorama preview**
+- The recording is stored as a ROS 2 bag using **MCAP**
+- The recorded panorama can later be replayed with ROS 2 tools or converted to a video file
+
+### Requirements for bag recording
+
+To use this feature, launch the application from an environment with access to ROS 2 Python packages and install:
+
+```bash
+pip install -r requirements_ros.txt
+```
+
+### Playing back the bag
+
+A recorded bag can be played back using standard ROS 2 bag tools, for example:
+
+```bash
+ros2 bag play <bag_directory>
+```
+
+### Optional conversion from bag to MP4
+
+If you want to convert the recorded MCAP bag to an MP4 video, you can optionally install:
+
+```bash
+pip install mcap-to-mp4
+```
+
+Then convert the bag using the recorded panorama topic, for example:
+
+```bash
+mcap-to-mp4 <path_to_mcap_file> -t /panorama/annotated -o panorama.mp4
+```
+
+This is useful when you want a standard video file for visualization, sharing, or post-processing outside ROS 2.
+
 ## Expected video format
 
 For best results, the input panorama should be:
@@ -187,6 +245,8 @@ Using a different resolution may require adjusting the panorama width and height
 - When using a video file or ROS 2 input, the panorama is processed in the same way as a live 360 feed.
 - In ROS 2 mode, the app currently subscribes to a decoded raw image topic, not directly to the `ffmpeg` transport topic.
 - The ROS 2 mode has been tested with decoded images in `bgr8` encoding.
+- The ROS bag recording feature stores the **annotated panorama preview** displayed by the application.
+- The recorded bag is useful both for later ROS 2 playback and for optional conversion to MP4.
 
 ## Examples
 

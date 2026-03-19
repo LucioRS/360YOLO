@@ -1,17 +1,13 @@
 """
 HelloImGui + OpenGL texture + FFmpeg camera capture (single file).
 
-Why FFmpeg?
-- Your THETA UVC advertises nv12/yuyv422. Those often appear as a fully green frame in OpenCV on Windows.
-- FFmpeg can force the input pixel_format and converts to bgr24 reliably.
-
 Dependencies:
   pip install imgui-bundle PyOpenGL
 Requirements:
-  ffmpeg.exe available in PATH
+  ffmpeg available in PATH
 
 Run:
-  python theta_hello_imgui_viewer.py --name "RICOH THETA UVC" --size 3840x1920 --fps 30 --in-pixfmt nv12
+  python app/test.py --name "RICOH THETA UVC" --size 3840x1920 --fps 30 --in-pixfmt nv12
 """
 
 import argparse
@@ -230,7 +226,7 @@ class GLVideoTexture:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--name", required=True, help='DirectShow device name, e.g. "RICOH THETA UVC"')
-    ap.add_argument("--size", default="1920x960", help="WxH (try 1920x960 first, then 3840x1920)")
+    ap.add_argument("--size", default="1920x960", help="WxH (e.g. 1920x960, 3840x1920)")
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--in-pixfmt", choices=["nv12", "yuyv422"], default="nv12",
                     help="Must match what ffmpeg -list_options shows for your camera")

@@ -2,3 +2,4 @@ imgui-bundle
 PyOpenGL
 ultralytics
 numpy<2
+mcap-to-mp4

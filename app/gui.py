@@ -3,9 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List
 import math
+import os
+import time
 
 import numpy as np
 from imgui_bundle import hello_imgui, imgui
+from bag_video_recorder import PanoBagRecorder
 
 from OpenGL.GL import (
     glBindTexture, glDeleteTextures, glGenTextures, glPixelStorei,
@@ -145,8 +148,9 @@ def _unwrap_u(u: np.ndarray) -> np.ndarray:
 # Main GUI class
 # =========================
 class ViewerGui:
-    def __init__(self, state: SharedState) -> None:
+    def __init__(self, state: SharedState, recorder: PanoBagRecorder) -> None:
         self.state = state
+        self.recorder = recorder
 
         self.pano_tex = GLTexture()
         self.view_tex: Dict[str, GLTexture] = {}
@@ -265,6 +269,33 @@ class ViewerGui:
 
         if imgui.button("Resume" if snap["paused"] else "Pause"):
             self.state.toggle_paused()
+
+        rec = self.recorder.get_status()
+        imgui.same_line()
+        if not rec["active"]:
+            if imgui.button("Start bag recording"):
+                ts = time.strftime("%Y%m%d_%H%M%S")
+                os.makedirs("bags", exist_ok=True)
+                uri = os.path.join("bags", f"panorama_record_{ts}")
+                try:
+                    self.recorder.start(
+                        uri,
+                        topic_name="/panorama/annotated",
+                        frame_id="panorama",
+                    )
+                except Exception as e:
+                    self.state.set_error(f"Recorder start failed: {e}")
+        else:
+            if imgui.button("Stop bag recording"):
+                self.recorder.stop()
+        
+        if rec["active"]:
+            imgui.same_line()
+            imgui.text(f"REC  frames={rec['frames_written']}")
+            if rec["uri"]:
+                imgui.text(f"Bag: {rec['uri']}")
+        elif rec["last_error"]:
+            imgui.text_colored((1.0, 0.3, 0.3, 1.0), f"Recorder error: {rec['last_error']}")     
 
         changed, new_conf = imgui.slider_float("Conf", float(snap["conf"]), 0.05, 0.95)
         if changed:
@@ -560,8 +591,8 @@ def _create_dockable_windows(gui: ViewerGui) -> List[hello_imgui.DockableWindow]
     return wins
 
 
-def run_gui(state: SharedState) -> None:
-    gui = ViewerGui(state)
+def run_gui(state: SharedState, recorder: PanoBagRecorder) -> None:
+    gui = ViewerGui(state, recorder)
 
     runner = hello_imgui.RunnerParams()
     runner.app_window_params.window_title = "360 YOLO Viewer"
