@@ -93,7 +93,7 @@ class CameraConfig:
 class InferenceConfig:
     model_path: str = "./models/yolo26n.pt"
     imgsz: int = 320
-    conf: float = 0.5
+    conf: float = 0.3
     device: str = "cpu"
 
     # GUI preview for views

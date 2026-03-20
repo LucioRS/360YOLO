@@ -1,4 +1,8 @@
 # 360YOLO
+
+ ![App snapshot](images/app.png)
+
+ *Example shown using video content from [Multi-Projection YOLO](https://github.com/Chtun/360VideoObjectDetection-MPPanorama).*
 ___
 
 A small desktop GUI application that displays a 360° equirectangular video feed and runs real-time YOLO object detection.
